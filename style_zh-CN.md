@@ -47,32 +47,41 @@
 
 该组合状态表示对象可以同时按下和聚焦。表示为 `LV_STATE_FOCUSED | LV_STATE_PRESSED`
 
-样式可以添加任意的状态和状态组合。例如。在 default 和 press 状态下分别设置不同的背景颜色
+样式可以添加任意的状态和状态组合。
 
-The style can be added to any state and state combination. 
-For example, setting a different background color for default and pressed state. 
-If a property is not defined in a state the best matching state's property will be used. Typically this means the property with `LV_STATE_DEFAULT` is used.˛
-If the property is not set even for the default state the default value will be used. (See later)
+例如，在 default 和 press 状态下分别设置不同的背景颜色。
 
-But what does the "best matching state's property" really mean? 
-States have a precedence which is shown by their value (see in the above list). A higher value means higher precedence.
-To determine which state's property to use let's take an example. Imagine the background color is defined like this:
-- `LV_STATE_DEFAULT`: white
-- `LV_STATE_PRESSED`: gray
-- `LV_STATE_FOCUSED`: red
+如果属性未在状态中定义，那么将会使用最契合这个状态的属性。通常这意味着使用带有 `LV_STATE_DEFAULT` 的属性。
 
-1. By the default the object is in default state, so it's a simple case: the property is perfectly defined in the object's current state as white.
-2. When the object is pressed there are 2 related properties: default with white (default is related to every state) and pressed with gray. 
-The pressed state has 0x0020 precedence which is higher than the default state's 0x0000 precedence, so gray color will be used.
-3. When the object is focused the same thing happens as in pressed state and red color will be used. (Focused state has higher precedence than default state).
-4. When the object is focused and pressed both gray and red would work, but the pressed state has higher precedence than focused so gray color will be used.
-5. It's possible to set e.g. rose color for `LV_STATE_PRESSED | LV_STATE_FOCUSED`. 
-In this case, this combined state has 0x0020 + 0x0002 = 0x0022 precedence, which is higher than the pressed state's precedence so rose color would be used.
-6. When the object is in checked state there is no property to set the background color for this state. So for lack of a better option, the object remains white from the default state's property.
+如果这个即使在默认状态下也没有设置属性，则将使用默认值（见后面）
 
-Some practical notes:
-- The precedence (value) of states is quite intuitive, and it's something the user would expect naturally. E.g. if an object is focused the user will still want to see if it's pressed, therefore pressed state has a higher precedence. 
-If the focused state had a higher precedence it would overwrite the pressed color.
+但是什么是“最契合的状态属性”呢
+
+状态的优先级依据上面的值，值越大，优先级越高。
+
+为了确定使用哪个状态的属性，让我们举一个例子。想象一下，背景颜色被定义成以下样子：
+
+- `LV_STATE_DEFAULT`: 白色
+- `LV_STATE_PRESSED`: 灰色
+- `LV_STATE_FOCUSED`: 红色
+
+1. 在默认情况下，对象处于默认状态，所以这是一个简单情况：属性在对象的当前状态中被完美的定义为白色
+
+2. 当对象处于 pressed 状态时，有两个相关属性：default 是白色（default 与每个状态相关），pressed 为灰色。pressed 优先级为 0x0020高于 default 的优先级 0x0000。故在按下时会使用灰色
+
+3. 当对象处在 focused 状态时，会发生与 pressed 状态相同的一些事件，但是会用使用红色。（Focused 状态的优先级高于 default 状态的优先级）
+
+4. 当对象处在 focused 和 pressed 时，灰色和红色同时会起作用，但是 pressed 状态的优先级高于 focused 状态的优先级，所以会使用灰色。
+
+5. 可以设置成例如 `LV_STATE_PRESSED | LV_STATE_FOCUSED` 的玫瑰色
+
+   在这种状态下，这个联合状态的的优先级为 0x0020 + 0x0002 = 0x0022，它高于 pressed 的优先级，所以会使用玫瑰色
+
+6. 当对象在 checked 状态时，这个状态没有属性去设置背景颜色。因为没有更好的选择，所以对象从 default 状态的属性保持白色
+
+一些使用的笔记:
+- 状态的优先级非常直观, 这是用户天热期望的。例如，如果一个对象的状态是 focused 的，一个用户依旧想要看它是否是被按下，这里 pressed 状态有更高的优先级。
+- If the focused state had a higher precedence it would overwrite the pressed color.
 - If you want to set a property for all states (e.g. red background color) just set it for the default state. If the object can't find a property for its current state it will fall back to the default state's property.
 - Use ORed states to describe the properties for complex cases. (E.g. pressed + checked + focused)
 - It might be a good idea to use different style elements for different states. 
