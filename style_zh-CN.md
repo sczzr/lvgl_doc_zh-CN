@@ -81,65 +81,72 @@
 
 一些使用的笔记:
 - 状态的优先级非常直观, 这是用户天热期望的。例如，如果一个对象的状态是 focused 的，一个用户依旧想要看它是否是被按下，这里 pressed 状态有更高的优先级。
-- If the focused state had a higher precedence it would overwrite the pressed color.
-- If you want to set a property for all states (e.g. red background color) just set it for the default state. If the object can't find a property for its current state it will fall back to the default state's property.
-- Use ORed states to describe the properties for complex cases. (E.g. pressed + checked + focused)
-- It might be a good idea to use different style elements for different states. 
-For example, finding background colors for released, pressed, checked + pressed, focused, focused + pressed, focused + pressed + checked, etc. states is quite difficult. 
-Instead, for example, use the background color for pressed and checked states and indicate the focused state with a different border color. 
 
-## Cascading styles
-It's not required to set all the properties in one style. It's possible to add more styles to an object and have the later added style modify or extend appearance.
-For example, create a general gray button style and create a new for red buttons where only the new background color is set. 
+- 如果 focused 状态有更高的优先级，则它会覆盖 pressed 状态的颜色
 
-This is much like in CSS when used classes are listed like `<div class=".btn .btn-red">`.
+- 如果你想要将所有状态设置会一个属性，只需要将其设 default 状态即可。如果这个对象不能找到这个属性的当前状态它将会去回退使用 default 状态的属性
 
-Styles added later have precedence over ones set earlier. So in the gray/red button example above, the normal button style should be added first and the red style second. 
-However, the precedence coming from states are still taken into account. 
-So let's examine the following case:
-- the basic button style defines dark-gray color for default state and light-gray color pressed state
-- the red button style defines the background color as red only in the default state
+- 使用 或运算符 可以将多个属性混合在一起使用（例如：pressed + checked + focused）
 
-In this case, when the button is released (it's in default state) it will be red because a perfect match is found in the most recently added style (red). 
-When the button is pressed the light-gray color is a better match because it describes the current state perfectly, so the button will be light-gray. 
+- 为不同的状态对应不同的样式元素是一个好主意
 
-## Inheritance 
-Some properties (typically those related to text) can be inherited from the parent object's styles. 
-Inheritance is applied only if the given property is not set in the object's styles (even in default state). 
-In this case, if the property is inheritable, the property's value will be searched in the parents too until an object specifies a value for the property. The parents will use their own state to determine the value. 
-So if a button is pressed, and the text color comes from here, the pressed text color will be used.
+  例如：
+  为 released, pressed, checked + pressed, focused, focused + pressed, focused + pressed + checked, 等状态寻找背景色是想当困难的
+
+  相反，例如使用背景色来区分 pressed 和 checked 状态，用不同的边框颜色表示 focused 状态
+
+## 级联样式
+不需要在一种样式中设置所有的属性。可以让对象添加更多的样式，让后添加的样式修改或者拓展外观
+
+例如：创建一个通用的灰色 button 样式并创建一个新的红色 button，其中只设置了新的背景颜色。这非常像 CSS 中当使用类列出 `<div class=".btn .btn-red">` 时。后添加的样式优先级高于前面添加的样式。所以在这个 灰色/红色 的示例中，首先添加正常 button 样式后添加红色的样式。然而来自状态的优先级依旧会生效。所以会产生以下两个情况
+
+- 基础 button 样式定义的 default 状态使用 dark-gray 颜色，pressed 状态使用 light-gray 颜色
+- 红色 button 样式定义在 default 状态时的背景颜色会红色
+
+在这个条例中，当 button 处于 released 时（为 default 状态），它将是红色的，因为在最近添加的样式（red）找到了最佳匹配。当 button 在 pressed 时（为 pressed 状态），light-gray 是最好的匹配，因为它完美的描述了当前状态，所以 button 将会显示 light-gray
+
+## 继承
+很多属性（通常是与文本相关的那些）能够继承自其父对象的样式。
+
+继承一般是在其对象的样式中没有去设置这些属性时生效（即使是 default 状态）
+
+在这条，如果属性是继承的，则在父对象中检索到该值，知道它被另一个对象设置。父对象会根据自己本身的状态去设定这些值
+
+所以如果一个 button 是 pressed 状态，且文本颜色来自继承，将会使用按下的文本颜色
 
 
-## Parts
-Objects can have *parts* which can have their own styles. 
+## parts
+对象可以有 parts，且 parts 可以有自己的样式 
 
-The following predefined parts exist in LVGL:
-- `LV_PART_MAIN` A background like rectangle*/
-- `LV_PART_SCROLLBAR`  The scrollbar(s)
-- `LV_PART_INDICATOR` Indicator, e.g. for slider, bar, switch, or the tick box of the checkbox
+下面列出在 LVGL 中的 parts：
+
+- `LV_PART_MAIN` 类似矩形的背景颜色 
+- `LV_PART_SCROLLBAR`  滑条
+- `LV_PART_INDICATOR` 指示器, e.g. for slider, bar, switch, or the tick box of the checkbox
 - `LV_PART_KNOB` Like a handle to grab to adjust the value*/
-- `LV_PART_SELECTED` Indicate the currently selected option or section
-- `LV_PART_ITEMS` Used if the widget has multiple similar elements (e.g. table cells)*/
+- `LV_PART_SELECTED` 指示当前选择的选项或部分
+- `LV_PART_ITEMS`  Used if the widget has multiple similar elements (e.g. table cells)*/
 - `LV_PART_TICKS` Ticks on scales e.g. for a chart or meter
-- `LV_PART_CURSOR` Mark a specific place e.g. text area's or chart's cursor
-- `LV_PART_CUSTOM_FIRST` Custom parts can be added from here.
+- `LV_PART_CURSOR` 标记一个特定的地方。 例如：文本区域或者图标里的光标
+- `LV_PART_CUSTOM_FIRST` 用户自定义的 parts 可以从这里添加。
 
 
 For example a [Slider](/widgets/core/slider) has three parts:
-- Background
-- Indicator
+- 背景色
+- 指示器
 - Knob
 
-It means all three parts of the slider can have their own styles. See later how to add styles to objects and parts.
+这意味着 Slider 总共有三个 parts 可以有它自己的样式，接下来看如何为对象或者 parts 添加样式
 
-## Initialize styles and set/get properties
 
-Styles are stored in `lv_style_t` variables. Style variables should be `static`, global or dynamically allocated. 
-In other words they can not be local variables in functions which are destroyed when the function exists. 
-Before using a style it should be initialized with `lv_style_init(&my_style)`. 
-After initializing the style properties can be set or added to it.
 
-Property set functions looks like this: `lv_style_set_<property_name>(&style, <value>);` For example: 
+## 初始化样式和设置/获取属性 
+
+样式储存在 `lv_style_t` 变量中。样式变量应该是 `static` 的。局的或动态分配的。换句话说，它们不能是函数内的局部变量，因为在函数退出时他们会被销毁。
+
+在使用样式之前应该先用`lv_style_init(&my_style)` 初始化该样式，在初始化样式之后就可添加或者设置属性了。
+属性的设置函数看起来像这样：`lv_style_set_<property_name>(&style, <value>);`例如：
+
 ```c
 static lv_style_t style_btn;
 lv_style_init(&style_btn);
@@ -154,13 +161,14 @@ lv_style_set_bg_color(&style_btn_red, lv_color_red());
 lv_style_set_bg_opa(&style_btn_red, LV_OPA_COVER);
 ```
 
-To remove a property use:
+删除属性使用：
 
 ```c
 lv_style_remove_prop(&style, LV_STYLE_BG_COLOR);
 ```
 
-To get a property's value from a style:
+从样式中获取一个属性的值：
+
 ```c
 lv_style_value_t v;
 lv_res_t res = lv_style_rget_prop(&style, LV_STYLE_BG_COLOR, &v);
@@ -169,17 +177,24 @@ if(res == LV_RES_OK) {	/*Found*/
 }
 ```
 
-`lv_style_value_t` has 3 fields:
-- `num` for integer, boolean and opacity properties
-- `color` for color properties
-- `ptr` for pointer properties
+`lv_style_value_t` 有三个区域:
 
-To reset a style (free all its data) use 
+- `num` 有整形, 布尔类型和不透明度属性
+- `color` 颜色属性
+- `ptr` 指针属性
+
+重置样式（释放所有的样式数据），请使用
+
 ```c
 lv_style_reset(&style);
 ```
 
-## Add and remove styles to a widget
+
+
+## 在 widget 里面添加和删除样式
+
+
+
 A style on its own is not that useful, it needs to be assigned to an object to take effect.
 
 ### Add styles
