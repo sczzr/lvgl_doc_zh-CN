@@ -193,12 +193,12 @@ lv_style_reset(&style);
 
 ## 在 widget 里面添加和删除样式
 
+单独的一个样式没什么作用，需要分配给一个对象才能生效
 
+### 添加样式
 
-A style on its own is not that useful, it needs to be assigned to an object to take effect.
+用 `lv_obj_add_style(obj, &style, <selector>)` 为一个对象添加样式。`<selector>` 是应添加 part 和 状态的 OR ed 值。例如：
 
-### Add styles
-To add a style to an object use `lv_obj_add_style(obj, &style, <selector>)`. `<selector>` is an OR-ed value of parts and state to which the style should be added. Some examples:
 - `LV_PART_MAIN | LV_STATE_DEFAULT`
 - `LV_STATE_PRESSED`: The main part in pressed state. `LV_PART_MAIN` can be omitted
 - `LV_PART_SCROLLBAR`: The scrollbar part in the default state. `LV_STATE_DEFAULT` can be omitted.
@@ -212,47 +212,51 @@ lv_obj_add_style(btn, &style_btn, 0);      				  /*Default button style*/
 lv_obj_add_style(btn, &btn_red, LV_STATE_PRESSED);  /*Overwrite only a some colors to red when pressed*/
 ```
 
-### Remove styles
-To remove all styles from an object use `lv_obj_remove_style_all(obj)`.
+### 删除样式
 
-To remove specific styles use `lv_obj_remove_style(obj, style, selector)`. This function will remove `style` only if the `selector` matches with the `selector` used in `lv_obj_add_style`. 
-`style` can be `NULL` to check only the `selector` and remove all matching styles. The `selector` can use the `LV_STATE_ANY` and `LV_PART_ANY` values to remove the style with any state or part.
+使用 `lv_obj_remove_style_all(obj)` 来删除一个对象的所有样式。
 
+使用 `lv_obj_remove_style(obj, style, selector)` 删除部分样式。这个函数仅会删除使用 `lv_obj_add_style` 添加进 `selector` 的样式
 
-### Report style changes
-If a style which is already assigned to object changes (i.e. a property is added or changed) the objects using that style should be notified. There are 3 options to do this:
-1. If you know that the changed properties can be applied by a simple redraw (e.g. color or opacity changes) just call `lv_obj_invalidate(obj)` or `lv_obj_invalideate(lv_scr_act())`. 
-2. If more complex style properties were changed or added, and you know which object(s) are affected by that style call `lv_obj_refresh_style(obj, part, property)`. 
-To refresh all parts and properties use `lv_obj_refresh_style(obj, LV_PART_ANY, LV_STYLE_PROP_ANY)`.
-3. To make LVGL check all objects to see whether they use the style and refresh them when needed call `lv_obj_report_style_change(&style)`. If `style` is `NULL` all objects will be notified about the style change.
+`style` 的值可以为 `NULL`，仅仅去匹配 `selector` 部分的值来删除样式，`selector` 可以使用 `LV_STATE_ANY` 和 `LV_PART_ANY` 这两个值来删除样式的所有状态和 part。 
 
-### Get a property's value on an object
-To get a final value of property - considering cascading, inheritance, local styles and transitions (see below) - get functions like this can be used: 
-`lv_obj_get_style_<property_name>(obj, <part>)`. 
-These functions use the object's current state and if no better candidate returns a default value.  
-For example:
+### 样式改变回报
+
+如果已经分配给对象的样式发生了改变（即添加或者改变一个属性），则使用了这个样式的对象将会收到通知。这里有 3 个选项可以执行此操作：
+
+ 	1. 如果您知道更改的属性可以通过简单的重绘（例如颜色或者透明度的改变）来实现，只需调用`lv_obj_invalidate(obj)` 或者`lv_obj_invalideate(lv_scr_act())`。
+ 	2. 如果改变或添加了更复杂的样式属性，并且您知道哪些对象收到这些样式的影响您可以调用`lv_obj_refresh_style(obj, part, property)`。刷新所有的 parts 和 属性使用`lv_obj_refresh_style(obj, LV_PART_ANY, LV_STYLE_PROP_ANY)`。
+ 	3. 要让 LVGL 检查所有对象以查看它们是否使用样式并在需要的时候刷新它们，请调用`lv_obj_report_style_change(&style)`。如果 `style` 部分为 `NULL` 时，所有的对象将会收到这个样式改变的通知。
+
+### 获取对象的属性值
+获取一个属性的最终值 - 考虑级联，继承，本地样式和 trainstations，可以使用这样的函数来获取：`lv_obj_get_style_<property_name>(obj, <part>)` 这个函数使用对象的当前状态，如果没有更好的候选者将返回默认值。例如：
+
 ```c
 lv_color_t color = lv_obj_get_style_bg_color(btn, LV_PART_MAIN);
 ```
 
-## Local styles
-Besides, "normal" styles, the objects can store local styles too. This concept is similar to inline styles in CSS (e.g. `<div style="color:red">`) with some modification. 
+## 本地属性
+此外，"normal" 样式，对象也可以储存本地样式。这个概念类似于 CSS 中的内联样式（例如，`<div style="color:red">`），但做了一些修改。
 
-So local styles are like normal styles, but they can't be shared among other objects. If used, local styles are allocated automatically, and freed when the object is deleted.
-They are useful to add local customization to the object.
+所以本地样式是类似于默认样式，但是它们不能在其它对象之间分享。如果这样使用了，本地对象会自动申请空间并在对象删除时释放。
 
-Unlike in CSS, in LVGL local styles can be assigned to states (*pseudo-classes*) and parts (*pseudo-elements*).
+它们有利于向对象添加本地定制。
+不同于 CSS，在 LVGL 里面的本地样式可以分配给状态和 parts。
 
-To set a local property use functions like `lv_obj_set_style_local_<property_name>(obj, <value>, <selector>);`  
-For example:
+设置本地属性使用函数： `lv_obj_set_style_local_<property_name>(obj, <value>, <selector>);`
+
+例如：
+
 ```c
 lv_obj_set_style_local_bg_color(slider, lv_color_red(), LV_PART_INDICATOR | LV_STATE_FOCUSED);
 ```
-## Properties
+## 属性
 For the full list of style properties click [here](/overview/style-props).
 
-### Typical background properties
-In the documentation of the widgets you will see sentences like "The widget uses the typical background properties". The "typical background properties" are the ones related to:
+### 典型的背景属性
+
+在 widget 文档李你可以看见这样的的描述：“widget 使用典型的背景属性”。这个 "典型的背景属性" 与以下相关：
+
 - Background
 - Border
 - Outline
@@ -264,19 +268,26 @@ In the documentation of the widgets you will see sentences like "The widget uses
 
 ## Transitions
 By default, when an object changes state (e.g. it's pressed) the new properties from the new state are set immediately. However, with transitions it's possible to play an animation on state change.
-For example, on pressing a button its background color can be animated to the pressed color over 300 ms.
 
-The parameters of the transitions are stored in the styles. It's possible to set 
+假设，在一个对象改变状态时（例如，对象被按下了）立即设置新属性的新状态。但是，通过 transitions 可以在状态改变时播放动画。
+
+例如，一个 button 被按下时，它的背景颜色可以在 300ms 的时间内动态的变为 perssed color。
+
+transitions 的参数储存在样式中，它可以去设置：
+
 - the time of the transition
 - the delay before starting the transition 
 - the animation path (also known as timing or easing function)
 - the properties to animate 
 
-The transition properties can be defined for each state. For example, setting 500 ms transition time in default state will mean that when the object goes to the default state a 500 ms transition time will be applied. 
-Setting 100 ms transition time in the pressed state will mean a 100 ms transition time when going to pressed state.
-So this example configuration will result in going to pressed state quickly and then going back to default slowly. 
+可以为每个状态定义 transitions 属性。例如，在 default 状态设置 500ms transitions 时间，当对象变为默认状态时会应用 500ms 的 transitions 时间。
 
-To describe a transition an `lv_transition_dsc_t` variable needs to be initialized and added to a style:
+在 pressed 状态设置 100ms 的 transitions 时间将意味着在进入 pressed 状态时有 100ms 的 transitions 时间。
+
+所以这个配置示例将导致快速进入 pressed 状态，缓慢回退到 default 状态。
+
+描述一个 transitions ，需要初始化  `lv_transition_dsc_t` 变量并添加到样式中。
+
 ```c
 /*Only its pointer is saved so must static, global or dynamically allocated */
 static const lv_style_prop_t trans_props[] = {
@@ -290,21 +301,24 @@ lv_style_transition_dsc_init(&trans1, trans_props, lv_anim_path_ease_out, durati
 lv_style_set_transition(&style1, &trans1);
 ```
 
-## Color filter
+## 颜色过滤器
 TODO
 
 
-## Themes
-Themes are a collection of styles. If there is an active theme LVGL applies it on every created widget.
-This will give a default appearance to the UI which can then be modified by adding further styles.
+## 主题
+主题是样式的集合，如果有一个活动的主题，LVGL 会将其应用到每一个创建的 widget 上。
 
-Every display can have a different theme. For example, you could have a colorful theme on a TFT and monochrome theme on a secondary monochrome display.
+这个将会给UI提供一个默认的外观，可以通过添加更多的样式来进行修改 
 
-To set a theme for a display, 2 steps are required:
-1. Initialize a theme
-2. Assign the initialized theme to a display.
+每个显示器可以有不同的主题。例如，你可以在 TFT 上使用彩色主题，在单色辅助显示器上使用单色主题显示。
 
-Theme initialization functions can have different prototype. This example shows how to set the "default" theme:
+为显示器设置主题，有 2 步需要做：
+
+1. 初始化一个主题
+2. 将初始化的主题分配给显示器
+
+主题初始化函数拥有不同的参数。这个示例展示了如何设置 "default" 主题
+
 ```c
 lv_theme_t * th = lv_theme_default_init(display,  /*Use the DPI, size, etc from this display*/ 
                                         LV_COLOR_PALETTE_BLUE, LV_COLOR_PALETTE_CYAN,   /*Primary and secondary palette*/
@@ -314,10 +328,11 @@ lv_theme_t * th = lv_theme_default_init(display,  /*Use the DPI, size, etc from 
 lv_disp_set_theme(display, th); /*Assign the theme to the display*/
 ```
 
-
 The themes can be enabled in `lv_conf.h`. If the default theme is enabled by `LV_USE_THEME_DEFAULT 1` LVGL automatically initializes and sets it when a display is created. 
 
-### Extending themes
+在 `lv_conf.h` 中可以使能主题。如果默认的主题由 `LV_USE_DEFAULT 1` 启用，LVGL 在创建显示器时自动初始化这个主题并分配
+
+### 拓展主题
 
 Built-in themes can be extended. 
 If a custom theme is created a parent theme can be selected. The parent theme's styles will be added before the custom theme's styles. 
@@ -352,3 +367,4 @@ There is an example for it below.
   
 
 ```
+
